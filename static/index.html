@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Report Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ApexCharts for advanced visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        // Add global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            const loadingIndicator = document.getElementById('loading');
+            if (loadingIndicator && !loadingIndicator.classList.contains('hidden')) {
+                loadingIndicator.classList.add('hidden');
+                alert('An error occurred while processing your request. Please check the console for details.');
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        
+
+        <main>
+            <div class="dashboard-layout">
+                <div class="sidebar">
+                    <div class="controls-panel">
+                        <h2>Report Parameters</h2>
+                        <form id="report-form">
+                            <div class="form-group">
+                                <label for="time-period">Time Period:</label>
+                                <select id="time-period" name="time-period">
+                                    <option value="current_month">Current Month</option>
+                                    <option value="last_month">Last Month</option>
+                                    <option value="last_quarter">Last Quarter</option>
+                                    <option value="last_30_days">Last 30 Days</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="categories">Categories:</label>
+                                <div id="categories-container" class="checkbox-container">
+                                    <!-- Categories will be populated dynamically -->
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="regions">Regions:</label>
+                                <div id="regions-container" class="checkbox-container">
+                                    <!-- Regions will be populated dynamically -->
+                                </div>
+                            </div>
+
+                            <button type="submit" id="generate-report-btn">
+                                <i class="fas fa-magic"></i> Generate Report
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="main-content">
+                    <div id="loading" class="hidden" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Analyzing data and generating report...</p>
+                    </div>
+
+                    <div id="dashboard-container">
+                        <div class="dashboard-header">
+                            <h2><i class="fas fa-tachometer-alt"></i> ERP Dashboard</h2>
+                            <p>Select parameters and click "Generate Report" to see insights</p>
+                        </div>
+
+                        <!-- Key Metrics Section -->
+                        <div class="metrics-cards">
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-dollar-sign"></i></div>
+                                <div class="metric-content">
+                                    <h3>Total Revenue</h3>
+                                    <p id="total-revenue">$0.00</p>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-shopping-cart"></i></div>
+                                <div class="metric-content">
+                                    <h3>Units Sold</h3>
+                                    <p id="units-sold">0</p>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="metric-content">
+                                    <h3>Revenue Growth</h3>
+                                    <p id="revenue-growth">0%</p>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-tags"></i></div>
+                                <div class="metric-content">
+                                    <h3>Avg. Price</h3>
+                                    <p id="avg-price">$0.00</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts Section -->
+                        <div class="charts-container">
+                            <div class="chart-card">
+                                <h3><i class="fas fa-chart-bar"></i> Monthly Revenue</h3>
+                                <div id="monthly-revenue-chart" class="chart"></div>
+                            </div>
+                            <div class="chart-card">
+                                <h3><i class="fas fa-chart-pie"></i> Revenue by Category</h3>
+                                <div id="category-chart" class="chart"></div>
+                            </div>
+                        </div>
+
+                        <div class="charts-container">
+                            <div class="chart-card">
+                                <h3><i class="fas fa-trophy"></i> Top Products</h3>
+                                <div id="top-products-chart" class="chart"></div>
+                            </div>
+                            <div class="chart-card">
+                                <h3><i class="fas fa-map-marker-alt"></i> Sales by Region</h3>
+                                <div id="region-chart" class="chart"></div>
+                            </div>
+                        </div>
+
+                        <!-- Report Section - Improved Design -->
+                        <div class="report-section">
+                            <div class="report-header">
+                                <h2><i class="fas fa-file-alt"></i> Business Summary Report</h2>
+                                <div class="report-actions">
+                                    <button id="download-report" class="action-button" title="Download Report">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button id="print-report" class="action-button" title="Print Report">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="report-container" class="report-content">
+                                <div class="report-placeholder">
+                                    <i class="far fa-file-alt placeholder-icon"></i>
+                                    <p>Your AI-generated business report will appear here.</p>
+                                    <p class="placeholder-instruction">Configure the parameters on the left and click "Generate Report".</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inventory Analysis Section -->
+                        <div class="inventory-section">
+                            <h2><i class="fas fa-boxes"></i> Inventory Analysis</h2>
+                            <div class="charts-container">
+                                <div class="chart-card">
+                                    <h3><i class="fas fa-exclamation-triangle"></i> Low Stock Items</h3>
+                                    <div id="low-stock-container" class="table-container">
+                                        <table id="low-stock-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Product</th>
+                                                    <th>Current Level</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="low-stock-body">
+                                                <!-- Will be populated dynamically -->
+                                                <tr>
+                                                    <td colspan="3" class="centered">No data available</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="chart-card">
+                                    <h3><i class="fas fa-truck-loading"></i> Restock Recommendations</h3>
+                                    <div id="restock-chart" class="chart"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Preview Section (Collapsible) -->
+                        <div class="data-preview-section">
+                            <div class="section-header collapsible" id="data-preview-header">
+                                <h2><i class="fas fa-table"></i> Data Preview</h2>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="section-content hidden" id="data-preview-content">
+                                <div class="data-preview">
+                                    <div id="data-table-container">
+                                        <table id="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Product</th>
+                                                    <th>Units Sold</th>
+                                                    <th>Revenue</th>
+                                                    <th>Category</th>
+                                                    <th>Region</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="data-table-body">
+                                                <!-- Data will be populated dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
